@@ -1,7 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // middleware.ts
+
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import type { CookieOptions } from '@supabase/ssr'
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
@@ -29,23 +32,41 @@ export async function middleware(request: NextRequest) {
           get(name: string) {
             return request.cookies.get(name)?.value
           },
-          set(name: string, value: string, options: any) {
+          set(name: string, value: string, options: CookieOptions) {
+            // Actualizar request cookies
             request.cookies.set(name, value)
+            
+            // Crear nueva respuesta con las cookies actualizadas
             response = NextResponse.next({
               request: {
                 headers: request.headers,
               },
             })
-            response.cookies.set(name, value, options)
+            
+            // Establecer cookie en la respuesta
+            if (options) {
+              response.cookies.set({
+                name,
+                value,
+                ...options,
+              })
+            } else {
+              response.cookies.set(name, value)
+            }
           },
-          remove(name: string, options: any) {
-            request.cookies.set(name, '')
+          remove(name: string, options: CookieOptions) {
+            // Eliminar cookie de la respuesta
             response = NextResponse.next({
               request: {
                 headers: request.headers,
               },
             })
-            response.cookies.set(name, '', options)
+            response.cookies.set({
+              name,
+              value: '',
+              ...options,
+              maxAge: 0,
+            })
           },
         },
       }
