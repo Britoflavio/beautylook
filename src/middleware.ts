@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 // middleware.ts
 
 import { createServerClient } from '@supabase/ssr'
