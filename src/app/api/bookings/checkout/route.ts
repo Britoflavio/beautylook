@@ -7,7 +7,7 @@ import { createPreference, getValidAccessToken } from "@/lib/mercadopago";
 const CheckoutSchema = z.object({
   slug: z.string().min(1).max(60),
   service_id: z.string().uuid(),
-  starts_at: z.string().datetime(),
+  starts_at: z.string().datetime({ offset: true }),
   client_name: z.string().trim().min(2).max(80),
   client_phone: z.string().min(8).max(20),
   client_email: z.string().trim().email().max(120).optional().or(z.literal("")),
