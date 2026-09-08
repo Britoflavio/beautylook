@@ -94,7 +94,7 @@ export async function middleware(request: NextRequest) {
 
     // Redireccionar si no está autenticado y va a ruta protegida
     if (!session && isProtectedRoute) {
-      return NextResponse.redirect(new URL('/signin', request.url))
+      return NextResponse.redirect(new URL('/login', request.url))
     }
 
     return response

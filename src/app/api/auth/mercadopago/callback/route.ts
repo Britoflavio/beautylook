@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { MercadoPagoConfig, OAuth } from "mercadopago";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { encrypt } from "@/lib/crypto";
+import { exchangeAuthCode } from "@/lib/mercadopago";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -34,16 +34,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const cfg = new MercadoPagoConfig({ accessToken: "dummy" });
-    const oauth = new OAuth(cfg);
-    const res = await oauth.create({
-      body: {
-        client_id: appId,
-        client_secret: clientSecret,
-        code,
-        redirect_uri: redirectUri,
-      },
-    });
+    const res = await exchangeAuthCode({ clientId: appId, clientSecret, code, redirectUri });
 
     if (!res.access_token || !res.refresh_token) {
       throw new Error("missing_tokens");
@@ -56,7 +47,7 @@ export async function GET(request: Request) {
     const { error: updErr } = await admin
       .from("professionals")
       .update({
-        mp_user_id: res.user_id ?? null,
+        mp_user_id: Number(res.user_id) || null,
         mp_access_token_enc: encrypt(res.access_token),
         mp_refresh_token_enc: encrypt(res.refresh_token),
         mp_token_expires_at: expiresAt,
@@ -67,9 +58,10 @@ export async function GET(request: Request) {
     if (updErr) throw updErr;
 
     return NextResponse.redirect(`${appUrl}/dashboard/settings?mp=connected`);
-  } catch {
+  } catch (e) {
+    const msg = e instanceof Error ? e.message.replace(/[^a-zA-Z0-9 _.-]/g, "") : "oauth_failed";
     const admin = createAdminClient();
     await admin.from("professionals").update({ mp_status: "error" }).eq("id", user.id);
-    return NextResponse.redirect(`${appUrl}/dashboard/settings?mp=error&reason=oauth_failed`);
+    return NextResponse.redirect(`${appUrl}/dashboard/settings?mp=error&reason=${encodeURIComponent(msg.slice(0, 80))}`);
   }
 }

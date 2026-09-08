@@ -1,6 +1,53 @@
-import { MercadoPagoConfig, OAuth, Payment, PaymentRefund, Preference } from "mercadopago";
+import { MercadoPagoConfig, Payment, PaymentRefund, Preference } from "mercadopago";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { decrypt, encrypt } from "@/lib/crypto";
+
+const MP_TOKEN_URL = "https://api.mercadopago.com/oauth/token";
+
+type TokenExchangeResult = {
+  access_token?: string;
+  refresh_token?: string;
+  expires_in?: number;
+  user_id?: number;
+};
+
+async function tokenExchange(body: Record<string, string | number>): Promise<TokenExchangeResult> {
+  const res = await fetch(MP_TOKEN_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`MP_OAUTH_HTTP_${res.status}`);
+  return (await res.json()) as TokenExchangeResult;
+}
+
+export function exchangeAuthCode(params: {
+  clientId: string;
+  clientSecret: string;
+  code: string;
+  redirectUri: string;
+}): Promise<TokenExchangeResult> {
+  return tokenExchange({
+    grant_type: "authorization_code",
+    client_id: params.clientId,
+    client_secret: params.clientSecret,
+    code: params.code,
+    redirect_uri: params.redirectUri,
+  });
+}
+
+export function refreshAccessToken(params: {
+  clientId: string;
+  clientSecret: string;
+  refreshToken: string;
+}): Promise<TokenExchangeResult> {
+  return tokenExchange({
+    grant_type: "refresh_token",
+    client_id: params.clientId,
+    client_secret: params.clientSecret,
+    refresh_token: params.refreshToken,
+  });
+}
 
 type ProfessionalRow = {
   id: string;
@@ -40,15 +87,7 @@ export async function getValidAccessToken(professionalId: string): Promise<strin
   if (!clientId || !clientSecret) return token;
 
   try {
-    const cfg = new MercadoPagoConfig({ accessToken: token });
-    const oauth = new OAuth(cfg);
-    const res = await oauth.refresh({
-      body: {
-        client_id: clientId,
-        client_secret: clientSecret,
-        refresh_token: refreshToken,
-      },
-    });
+    const res = await refreshAccessToken({ clientId, clientSecret, refreshToken });
 
     const newAccess = res.access_token;
     const newRefresh = res.refresh_token;
@@ -72,11 +111,6 @@ export async function getValidAccessToken(professionalId: string): Promise<strin
     await supabase.from("professionals").update({ mp_status: "error" }).eq("id", professionalId);
     return token;
   }
-}
-
-export function getOAuthClient() {
-  const accessToken = process.env.MP_CLIENT_SECRET ? "APP_USR-dummy" : "";
-  return new OAuth(new MercadoPagoConfig({ accessToken }));
 }
 
 export async function createPreference(params: {
