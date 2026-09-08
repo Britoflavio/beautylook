@@ -9,7 +9,10 @@ export default function AuthLayout({
     </div>
   );
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 85368bcdcbe13029b714578a037e2504cf54d48f
   
 }
