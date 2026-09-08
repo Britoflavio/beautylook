@@ -25,7 +25,7 @@ export default async function SchedulePage() {
   return (
     <div className="grid gap-6">
       <div>
-        <h1 className="text-2xl font-bold">Horarios</h1>
+        <h1 className="font-display text-3xl font-semibold tracking-tight">Horarios</h1>
         <p className="text-sm text-muted-foreground">Configurá tus días y horarios recurrentes, y bloqueá fechas puntuales.</p>
       </div>
       <ScheduleClient initialRules={rules ?? []} initialExceptions={exceptions ?? []} />

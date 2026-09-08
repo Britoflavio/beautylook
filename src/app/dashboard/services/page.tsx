@@ -19,7 +19,7 @@ export default async function ServicesPage() {
   return (
     <div className="grid gap-6">
       <div>
-        <h1 className="text-2xl font-bold">Servicios</h1>
+        <h1 className="font-display text-3xl font-semibold tracking-tight">Servicios</h1>
         <p className="text-sm text-muted-foreground">Los servicios activos se muestran en tu página pública. El orden arrastra el orden en la landing.</p>
       </div>
       <ServicesClient initial={data ?? []} />

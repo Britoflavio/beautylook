@@ -7,8 +7,10 @@ import { toARTime } from "@/lib/time";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "cn";
 import { toast } from "sonner";
+import { CalendarCheck, Clock, CheckCircle2 } from "lucide-react";
 
 type Service = {
   id: string;
@@ -34,6 +36,8 @@ const HOLD_ERROR_MESSAGES: Record<string, string> = {
   INVALID_CLIENT: "Ingresá tu nombre.",
 };
 
+const STEP_LABELS = ["Servicio", "Día", "Horario", "Tus datos"];
+
 function buildDayOptions(): DayOption[] {
   const days: DayOption[] = [];
   const dayNames = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
@@ -57,6 +61,21 @@ function buildDayOptions(): DayOption[] {
     });
   }
   return days;
+}
+
+function currentStep({
+  service,
+  day,
+  slot,
+}: {
+  service: Service | null;
+  day: string | null;
+  slot: string | null;
+}) {
+  if (!service) return 0;
+  if (!day) return 1;
+  if (!slot) return 2;
+  return 3;
 }
 
 export function BookingWidget({
@@ -139,16 +158,39 @@ export function BookingWidget({
 
   if (services.length === 0) {
     return (
-      <div className="rounded-xl border bg-background p-6 text-center text-muted-foreground">
+      <div className="rounded-2xl border border-border bg-card p-8 text-center text-muted-foreground">
         Este profesional todavía no publicó servicios.
       </div>
     );
   }
 
+  const step = currentStep({ service, day, slot });
+
   return (
-    <div className="grid gap-4">
-      <section>
-        <h2 className="font-semibold mb-2">1. Elegí tu servicio</h2>
+    <div className="grid gap-6">
+      <div className="flex items-center gap-2">
+        {STEP_LABELS.map((label, i) => (
+          <div key={label} className="flex flex-1 flex-col gap-1.5">
+            <div
+              className={cn(
+                "h-1 rounded-full transition-colors",
+                i <= step ? "bg-primary" : "bg-muted",
+              )}
+            />
+            <span
+              className={cn(
+                "text-[0.7rem] font-medium",
+                i === step ? "text-foreground" : "text-muted-foreground",
+              )}
+            >
+              {label}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <section className="grid gap-3">
+        <h2 className="font-display text-lg font-semibold">1. Elegí tu servicio</h2>
         <div className="grid gap-2">
           {services.map((s) => (
             <button
@@ -160,41 +202,53 @@ export function BookingWidget({
                 setSlot(null);
               }}
               className={cn(
-                "w-full text-left rounded-xl border bg-background p-4 transition-colors",
+                "group flex w-full items-center justify-between gap-3 rounded-2xl border bg-card p-4 text-left transition-all",
                 service?.id === s.id
                   ? "border-primary ring-2 ring-primary/20"
-                  : "hover:bg-muted",
+                  : "hover:border-border hover:bg-accent/40",
               )}
             >
-              <div className="flex justify-between items-center gap-2">
-                <span className="font-medium">{s.name}</span>
-                <span className="font-medium whitespace-nowrap">
-                  {formatARS(s.price)}
-                </span>
+              <div className="flex items-center gap-3">
+                <div
+                  className={cn(
+                    "flex size-5 items-center justify-center rounded-full border transition-colors",
+                    service?.id === s.id
+                      ? "border-primary bg-primary"
+                      : "border-border",
+                  )}
+                >
+                  {service?.id === s.id && <CheckCircle2 className="size-4 text-primary-foreground" />}
+                </div>
+                <div>
+                  <p className="font-medium">{s.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {formatDuration(s.duration_min)}
+                    {s.description ? ` · ${s.description}` : ""}
+                  </p>
+                </div>
               </div>
-              <p className="text-sm text-muted-foreground">
-                {formatDuration(s.duration_min)}
-                {s.description ? ` · ${s.description}` : ""}
-              </p>
+              <span className="font-medium whitespace-nowrap">
+                {formatARS(s.price)}
+              </span>
             </button>
           ))}
         </div>
       </section>
 
       {service && (
-        <section>
-          <h2 className="font-semibold mb-2">2. Elegí el día</h2>
-          <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+        <section className="grid gap-3">
+          <h2 className="font-display text-lg font-semibold">2. Elegí el día</h2>
+          <div className="flex gap-2 overflow-x-auto pb-2">
             {days.map((d) => (
               <button
                 key={d.date}
                 type="button"
                 onClick={() => setDay(d.date)}
                 className={cn(
-                  "shrink-0 rounded-lg border px-3 py-2 text-sm text-center transition-colors",
+                  "shrink-0 rounded-xl border px-4 py-2.5 text-center transition-colors",
                   day === d.date
                     ? "border-primary bg-primary text-primary-foreground"
-                    : "bg-background hover:bg-muted",
+                    : "border-border bg-card hover:bg-accent/40",
                 )}
               >
                 <span className="block text-xs opacity-80">
@@ -208,26 +262,28 @@ export function BookingWidget({
       )}
 
       {service && day && (
-        <section>
-          <h2 className="font-semibold mb-2">3. Elegí el horario</h2>
+        <section className="grid gap-3">
+          <h2 className="font-display text-lg font-semibold">3. Elegí el horario</h2>
           {loadingSlots ? (
-            <p className="text-sm text-muted-foreground">Cargando horarios...</p>
+            <div className="flex items-center gap-2 rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
+              <Spinner /> Cargando horarios...
+            </div>
           ) : slots.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No hay horarios para este día. Probá otra fecha.
-            </p>
+            <div className="flex items-center gap-2 rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
+              <Clock className="size-4" /> No hay horarios para este día. Probá otra fecha.
+            </div>
           ) : (
-            <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+            <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
               {slots.map((s) => (
                 <button
                   key={s}
                   type="button"
                   onClick={() => setSlot(s)}
                   className={cn(
-                    "rounded-lg border py-2 text-sm font-medium transition-colors",
+                    "rounded-xl border py-2.5 text-sm font-medium transition-colors",
                     slot === s
                       ? "border-primary bg-primary text-primary-foreground"
-                      : "bg-background hover:bg-muted",
+                      : "border-border bg-card hover:bg-accent/40",
                   )}
                 >
                   {toARTime(s)}
@@ -239,13 +295,13 @@ export function BookingWidget({
       )}
 
       {service && day && slot && (
-        <section>
-          <h2 className="font-semibold mb-2">4. Tus datos</h2>
+        <section className="grid gap-3">
+          <h2 className="font-display text-lg font-semibold">4. Tus datos</h2>
           <form
             onSubmit={handleSubmit}
-            className="rounded-xl border bg-background p-4 grid gap-3"
+            className="grid gap-4 rounded-2xl border border-border bg-card p-5"
           >
-            <div className="grid gap-1">
+            <div className="grid gap-1.5">
               <Label htmlFor="clientName">Nombre y apellido</Label>
               <Input
                 id="clientName"
@@ -256,7 +312,7 @@ export function BookingWidget({
                 onChange={(e) => setClientName(e.target.value)}
               />
             </div>
-            <div className="grid gap-1">
+            <div className="grid gap-1.5">
               <Label htmlFor="clientPhone">WhatsApp</Label>
               <Input
                 id="clientPhone"
@@ -267,7 +323,7 @@ export function BookingWidget({
                 onChange={(e) => setClientPhone(e.target.value)}
               />
             </div>
-            <div className="grid gap-1">
+            <div className="grid gap-1.5">
               <Label htmlFor="clientEmail">
                 Email <span className="text-muted-foreground">(opcional)</span>
               </Label>
@@ -279,14 +335,22 @@ export function BookingWidget({
                 onChange={(e) => setClientEmail(e.target.value)}
               />
             </div>
-            <div className="rounded-lg bg-muted p-3 text-sm flex justify-between">
-              <span>Seña ({service.name})</span>
-              <span className="font-medium">{formatARS(service.price)}</span>
+            <div className="flex items-center justify-between rounded-xl bg-accent/60 px-4 py-3 text-sm">
+              <span className="flex items-center gap-2 text-muted-foreground">
+                <CalendarCheck className="size-4" /> Seña ({service.name})
+              </span>
+              <span className="font-semibold">{formatARS(service.price)}</span>
             </div>
             <Button type="submit" size="lg" disabled={submitting}>
-              {submitting ? "Reservando..." : "Reservar y pagar la seña"}
+              {submitting ? (
+                <>
+                  <Spinner /> Reservando...
+                </>
+              ) : (
+                "Reservar y pagar la seña"
+              )}
             </Button>
-            <p className="text-xs text-muted-foreground text-center">
+            <p className="text-center text-xs text-muted-foreground">
               Reservamos tu turno {25} minutos mientras completás el pago.
               {cancellationPolicyHours > 0 &&
                 ` Cancelando con más de ${cancellationPolicyHours}h de antelación, se te devuelve la seña.`}

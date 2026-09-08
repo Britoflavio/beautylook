@@ -7,10 +7,18 @@ import { createClient } from "@/lib/supabase/client";
 import { isValidSlug, slugify, suggestSlugs } from "@/lib/slug";
 import { normalizeARPhone } from "@/lib/phone";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
+import { CheckCircle2, XCircle } from "lucide-react";
 
 type SlugStatus = "idle" | "invalid" | "checking" | "available" | "taken";
 
@@ -129,13 +137,15 @@ export default function SignupPage() {
 
   if (awaitingConfirmation) {
     return (
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader className="text-center">
-          <CardTitle>Revisá tu correo</CardTitle>
+          <CardTitle className="font-display text-2xl">
+            Revisá tu correo
+          </CardTitle>
           <CardDescription>
-            Te enviamos un link de confirmación a <strong>{email}</strong>. Cuando
-            confirmes tu email, ingresá con tu contraseña y seguimos armando tu
-            página.
+            Te enviamos un link de confirmación a <strong>{email}</strong>.
+            Cuando confirmes tu email, ingresá con tu contraseña y seguimos
+            armando tu página.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3">
@@ -148,11 +158,14 @@ export default function SignupPage() {
   }
 
   return (
-    <Card>
+    <Card className="shadow-sm">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Creá tu página de turnos</CardTitle>
+        <CardTitle className="font-display text-2xl">
+          Creá tu página de turnos
+        </CardTitle>
         <CardDescription>
-          En 5 minutos tenés tu página pública con cobro de seña por Mercado Pago.
+          En 5 minutos tenés tu página pública con cobro de seña por Mercado
+          Pago.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -185,34 +198,35 @@ export default function SignupPage() {
                 aria-invalid={slugStatus === "invalid" || slugStatus === "taken"}
               />
               {slugStatus === "checking" && (
-                <span className="text-xs text-muted-foreground whitespace-nowrap">
-                  Verificando...
+                <span className="flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
+                  <Spinner /> Verificando...
                 </span>
               )}
               {slugStatus === "available" && (
-                <span className="text-xs text-green-600 whitespace-nowrap">
-                  Disponible ✓
+                <span className="flex items-center gap-1 text-xs text-green-600 whitespace-nowrap">
+                  <CheckCircle2 className="size-3" /> Disponible
                 </span>
               )}
               {slugStatus === "taken" && (
-                <span className="text-xs text-red-600 whitespace-nowrap">
-                  Ocupado ✗
+                <span className="flex items-center gap-1 text-xs text-red-600 whitespace-nowrap">
+                  <XCircle className="size-3" /> Ocupado
                 </span>
               )}
               {slugStatus === "invalid" && (
-                <span className="text-xs text-red-600 whitespace-nowrap">
-                  Inválido ✗
+                <span className="flex items-center gap-1 text-xs text-red-600 whitespace-nowrap">
+                  <XCircle className="size-3" /> Inválido
                 </span>
               )}
             </div>
             {slugPreview && (
-              <p className="text-xs text-muted-foreground font-mono truncate">
+              <p className="truncate font-mono text-xs text-muted-foreground">
                 {slugPreview}
               </p>
             )}
             {slugStatus === "invalid" && (
               <p className="text-xs text-red-600">
-                Usá entre 3 y 30 caracteres: letras minúsculas, números y guiones.
+                Usá entre 3 y 30 caracteres: letras minúsculas, números y
+                guiones.
               </p>
             )}
             {suggestions.length > 0 && (
@@ -221,7 +235,7 @@ export default function SignupPage() {
                   <button
                     key={s}
                     type="button"
-                    className="text-xs px-2 py-1 rounded-md bg-primary/10 text-primary font-mono hover:bg-primary/20"
+                    className="rounded-md bg-primary/10 px-2 py-1 font-mono text-xs text-primary hover:bg-primary/20"
                     onClick={() => {
                       setSlug(s);
                       setSuggestions([]);
@@ -276,12 +290,21 @@ export default function SignupPage() {
           </div>
 
           <Button type="submit" disabled={loading || slugStatus === "invalid"}>
-            {loading ? "Creando tu cuenta..." : "Crear mi página"}
+            {loading ? (
+              <>
+                <Spinner /> Creando tu cuenta...
+              </>
+            ) : (
+              "Crear mi página"
+            )}
           </Button>
         </form>
-        <p className="text-center text-sm text-muted-foreground mt-4">
+        <p className="mt-4 text-center text-sm text-muted-foreground">
           ¿Ya tenés cuenta?{" "}
-          <Link href="/login" className="text-primary underline-offset-4 hover:underline">
+          <Link
+            href="/login"
+            className="text-primary underline-offset-4 hover:underline"
+          >
             Ingresar
           </Link>
         </p>

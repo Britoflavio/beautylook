@@ -1,6 +1,6 @@
 "use client";
-export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store';
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -10,12 +10,21 @@ import { normalizeARPhone } from "@/lib/phone";
 import { parseARPrice } from "@/lib/format";
 import { WEEKDAYS } from "@/lib/time";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
+import { cn } from "cn";
+import { Plus, X, ArrowRight, Sparkles } from "lucide-react";
 
 const CATEGORIES = [
   "Peluquería",
@@ -29,12 +38,12 @@ const CATEGORIES = [
 ];
 
 const DEFAULT_SERVICES: Record<string, [string, number, number][]> = {
-  "Peluquería": [
+  Peluquería: [
     ["Corte de pelo", 45, 8000],
     ["Color completo", 120, 25000],
     ["Lavado + peinado", 60, 10000],
   ],
-  "Barbería": [
+  Barbería: [
     ["Corte de pelo", 40, 7000],
     ["Corte + barba", 60, 10000],
     ["Afeitado clásico", 30, 6000],
@@ -44,7 +53,7 @@ const DEFAULT_SERVICES: Record<string, [string, number, number][]> = {
     ["Uñas esculpidas", 90, 12000],
     ["Esmaltado semipermanente", 60, 8000],
   ],
-  "Maquillaje": [
+  Maquillaje: [
     ["Maquillaje social", 60, 15000],
     ["Maquillaje de novia (prueba)", 90, 20000],
     ["Automaquillaje (clase)", 60, 10000],
@@ -54,17 +63,17 @@ const DEFAULT_SERVICES: Record<string, [string, number, number][]> = {
     ["Lash lifting", 60, 9000],
     ["Extensiones de pestañas", 120, 15000],
   ],
-  "Masajes": [
+  Masajes: [
     ["Masaje relajante", 60, 12000],
     ["Masaje descontracturante", 60, 13000],
     ["Drenaje linfático", 90, 15000],
   ],
-  "Depilación": [
+  Depilación: [
     ["Depilación facial", 30, 4000],
     ["Media pierna", 45, 6000],
     ["Pierna completa", 60, 9000],
   ],
-  "Otros": [
+  Otros: [
     ["Servicio 1", 60, 5000],
     ["Servicio 2", 90, 8000],
     ["Servicio 3", 45, 4000],
@@ -137,11 +146,13 @@ export default function OnboardingPage() {
         if (pro.bio) setBio(pro.bio);
         if (pro.photo_url) setPhotoUrl(pro.photo_url);
         setServices(
-          DEFAULT_SERVICES[pro.category ?? "Otros"]?.map(([name, duration_min, price]) => ({
-            name,
-            duration_min,
-            price: String(price),
-          })) ?? [],
+          DEFAULT_SERVICES[pro.category ?? "Otros"]?.map(
+            ([name, duration_min, price]) => ({
+              name,
+              duration_min,
+              price: String(price),
+            }),
+          ) ?? [],
         );
       }
       setLoading(false);
@@ -191,7 +202,9 @@ export default function OnboardingPage() {
       toast.error("No pudimos subir la foto");
       return;
     }
-    const { data } = supabase.storage.from("professional-photos").getPublicUrl(path);
+    const { data } = supabase.storage
+      .from("professional-photos")
+      .getPublicUrl(path);
     setPhotoUrl(data.publicUrl);
     setUploadingPhoto(false);
   }
@@ -283,18 +296,22 @@ export default function OnboardingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-muted-foreground">
-        Cargando...
+      <div className="flex min-h-screen items-center justify-center text-muted-foreground">
+        <Spinner className="size-6" />
       </div>
     );
   }
 
   if (!hasProfile) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4">
-        <Card className="w-full max-w-md">
+      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-10">
+        <div className="pointer-events-none absolute inset-0 texture-grain opacity-50" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-64 glow-soft" />
+        <Card className="relative z-10 w-full max-w-md shadow-sm">
           <CardHeader>
-            <CardTitle>Completá tu registro</CardTitle>
+            <CardTitle className="font-display text-xl">
+              Completá tu registro
+            </CardTitle>
             <CardDescription>
               Elegí la dirección de tu página, {fallbackName}
             </CardDescription>
@@ -346,7 +363,7 @@ export default function OnboardingPage() {
                       <button
                         key={s}
                         type="button"
-                        className="text-xs px-2 py-1 rounded-md bg-primary/10 text-primary font-mono hover:bg-primary/20"
+                        className="rounded-md bg-primary/10 px-2 py-1 font-mono text-xs text-primary hover:bg-primary/20"
                         onClick={() => setSlug(s)}
                       >
                         {s}
@@ -367,7 +384,7 @@ export default function OnboardingPage() {
                 />
               </div>
               <Button type="submit" disabled={saving}>
-                Continuar
+                {saving ? <Spinner /> : "Continuar"}
               </Button>
             </form>
           </CardContent>
@@ -377,28 +394,36 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/40 px-4 py-10">
-      <div className="max-w-xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">BeautyBook</h1>
+    <div className="relative min-h-screen overflow-hidden bg-background px-4 py-10">
+      <div className="pointer-events-none absolute inset-0 texture-grain opacity-50" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-64 glow-soft" />
+
+      <div className="relative z-10 mx-auto max-w-xl">
+        <div className="mb-6 flex items-center justify-between">
+          <span className="font-display text-xl font-semibold tracking-tight">
+            Beauty<span className="text-primary">Book</span>
+          </span>
           <p className="text-sm text-muted-foreground">
             Paso {step + 1} de 4 · {STEP_TITLES[step]}
           </p>
         </div>
-        <div className="flex gap-2 mb-6">
+        <div className="mb-6 flex gap-2">
           {STEP_TITLES.map((t, i) => (
             <div
               key={t}
-              className={`h-1.5 flex-1 rounded-full ${
-                i <= step ? "bg-primary" : "bg-muted"
-              }`}
+              className={cn(
+                "h-1.5 flex-1 rounded-full transition-colors",
+                i <= step ? "bg-primary" : "bg-muted",
+              )}
             />
           ))}
         </div>
 
-        <Card>
+        <Card className="shadow-sm">
           <CardHeader>
-            <CardTitle>{STEP_TITLES[step]}</CardTitle>
+            <CardTitle className="font-display text-xl">
+              {STEP_TITLES[step]}
+            </CardTitle>
             <CardDescription>
               {step === 0 && "Contale a tus clientas quién sos y dónde atendés."}
               {step === 1 && "Podés editarlos cuando quieras desde el panel."}
@@ -417,11 +442,12 @@ export default function OnboardingPage() {
                         key={c}
                         type="button"
                         onClick={() => applyCategoryDefaults(c)}
-                        className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
+                        className={cn(
+                          "rounded-full border px-3 py-1.5 text-sm transition-colors",
                           category === c
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : "bg-background hover:bg-muted"
-                        }`}
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border bg-card hover:bg-accent/40",
+                        )}
                       >
                         {c}
                       </button>
@@ -466,10 +492,10 @@ export default function OnboardingPage() {
                       <img
                         src={photoUrl}
                         alt="Foto de perfil"
-                        className="w-16 h-16 rounded-full object-cover"
+                        className="size-16 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center text-muted-foreground text-xs">
+                      <div className="flex size-16 items-center justify-center rounded-full bg-muted text-xs text-muted-foreground">
                         Sin foto
                       </div>
                     )}
@@ -491,7 +517,10 @@ export default function OnboardingPage() {
             {step === 1 && (
               <div className="grid gap-3">
                 {services.map((s, i) => (
-                  <div key={i} className="grid grid-cols-[1fr_80px_100px_36px] gap-2 items-end">
+                  <div
+                    key={i}
+                    className="grid grid-cols-[1fr_80px_100px_36px] items-end gap-2"
+                  >
                     <div className="grid gap-1">
                       {i === 0 && <Label>Servicio</Label>}
                       <Input
@@ -549,7 +578,7 @@ export default function OnboardingPage() {
                         setServices((prev) => prev.filter((_, j) => j !== i))
                       }
                     >
-                      ✕
+                      <X className="size-4" />
                     </Button>
                   </div>
                 ))}
@@ -563,7 +592,7 @@ export default function OnboardingPage() {
                     ])
                   }
                 >
-                  + Agregar servicio
+                  <Plus className="size-4" /> Agregar servicio
                 </Button>
               </div>
             )}
@@ -616,14 +645,17 @@ export default function OnboardingPage() {
 
             {step === 3 && (
               <div className="grid gap-4">
-                <p className="text-sm text-muted-foreground">
-                  Las reservas se confirman con el pago de la seña (el precio
-                  completo del servicio) vía Mercado Pago, directo a tu cuenta.
-                  Vas a conectar tu cuenta de Mercado Pago en el panel cuando
-                  quieras activar los cobros.
-                </p>
+                <div className="flex items-start gap-3 rounded-xl border border-border bg-accent/30 p-4">
+                  <Sparkles className="mt-0.5 size-5 shrink-0 text-primary" />
+                  <p className="text-sm text-muted-foreground">
+                    Las reservas se confirman con el pago de la seña (el precio
+                    completo del servicio) vía Mercado Pago, directo a tu cuenta.
+                    Vas a conectar tu cuenta de Mercado Pago en el panel cuando
+                    quieras activar los cobros.
+                  </p>
+                </div>
                 <Button onClick={finish} disabled={saving}>
-                  {saving ? "Guardando..." : "Ir a mi panel"}
+                  {saving ? <Spinner /> : "Ir a mi panel"}
                 </Button>
               </div>
             )}
@@ -631,7 +663,8 @@ export default function OnboardingPage() {
             {step < 3 && (
               <div className="flex justify-end pt-2">
                 <Button onClick={nextStep} disabled={saving}>
-                  {saving ? "Guardando..." : "Continuar"}
+                  {saving ? <Spinner /> : "Continuar"}
+                  {!saving && <ArrowRight className="size-4" />}
                 </Button>
               </div>
             )}

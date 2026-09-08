@@ -48,7 +48,7 @@ export default async function BookingsPage({
   return (
     <div className="grid gap-6">
       <div>
-        <h1 className="text-2xl font-bold">Reservas</h1>
+        <h1 className="font-display text-3xl font-semibold tracking-tight">Reservas</h1>
         <p className="text-sm text-muted-foreground">Gestioná todos tus turnos. Cancelar como profesional devuelve la seña si estaba confirmada.</p>
       </div>
       <BookingsClient initial={((data as unknown as BookingRow[]) ?? []) as BookingRow[]} initialStatus={status ?? "all"} />

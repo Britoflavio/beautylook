@@ -23,9 +23,11 @@ export default async function DashboardLayout({
   if (!pro.onboarding_completed) redirect("/onboarding");
 
   return (
-    <div className="min-h-screen bg-muted/40">
+    <div className="min-h-screen bg-background">
       <DashboardNav displayName={pro.display_name} slug={pro.slug} />
-      <main className="max-w-5xl mx-auto px-4 py-8">{children}</main>
+      <main className="px-4 py-8 lg:pl-72 lg:pr-8">
+        <div className="mx-auto max-w-5xl">{children}</div>
+      </main>
     </div>
   );
 }

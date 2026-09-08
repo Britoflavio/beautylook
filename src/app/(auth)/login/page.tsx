@@ -5,9 +5,16 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 
 export default function LoginPage() {
@@ -34,10 +41,10 @@ export default function LoginPage() {
   }
 
   return (
-    <Card>
+    <Card className="shadow-sm">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">BeautyBook</CardTitle>
-        <CardDescription>Ingresá para gestionar tus turnos</CardDescription>
+        <CardTitle className="font-display text-2xl">Ingresá</CardTitle>
+        <CardDescription>Para gestionar tus turnos</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="grid gap-4">
@@ -64,12 +71,21 @@ export default function LoginPage() {
             />
           </div>
           <Button type="submit" disabled={loading}>
-            {loading ? "Ingresando..." : "Ingresar"}
+            {loading ? (
+              <>
+                <Spinner /> Ingresando...
+              </>
+            ) : (
+              "Ingresar"
+            )}
           </Button>
         </form>
-        <p className="text-center text-sm text-muted-foreground mt-4">
+        <p className="mt-4 text-center text-sm text-muted-foreground">
           ¿No tenés cuenta?{" "}
-          <Link href="/signup" className="text-primary underline-offset-4 hover:underline">
+          <Link
+            href="/signup"
+            className="text-primary underline-offset-4 hover:underline"
+          >
             Crear mi página
           </Link>
         </p>
