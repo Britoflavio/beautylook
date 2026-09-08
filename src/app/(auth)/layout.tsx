@@ -8,11 +8,4 @@ export default function AuthLayout({
       <div className="w-full max-w-md">{children}</div>
     </div>
   );
-
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 85368bcdcbe13029b714578a037e2504cf54d48f
-  
 }
