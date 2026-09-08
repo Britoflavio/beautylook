@@ -95,7 +95,7 @@ export function BookingWidget({
         toast.error("No pudimos cargar los horarios. Probá de nuevo.");
         return;
       }
-      setSlots((data as string[]) ?? []);
+      setSlots(((data as { slot_start: string }[]) ?? []).map((d) => d.slot_start));
     },
     [slug, supabase],
   );

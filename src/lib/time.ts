@@ -15,8 +15,14 @@ export function arSlotToISO(date: string, time: string): string {
   return new Date(`${date}T${time}:00${AR_OFFSET}`).toISOString();
 }
 
-export function toARDate(iso: string): string {
+function validDate(iso: string): Date | null {
   const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+export function toARDate(iso: string): string {
+  const d = validDate(iso);
+  if (!d) return iso;
   const fmt = new Intl.DateTimeFormat("en-CA", {
     timeZone: AR_TZ,
     year: "numeric",
@@ -27,7 +33,8 @@ export function toARDate(iso: string): string {
 }
 
 export function toARTime(iso: string): string {
-  const d = new Date(iso);
+  const d = validDate(iso);
+  if (!d) return iso;
   const fmt = new Intl.DateTimeFormat("es-AR", {
     timeZone: AR_TZ,
     hour: "2-digit",
@@ -38,7 +45,8 @@ export function toARTime(iso: string): string {
 }
 
 export function formatARDayTime(iso: string): string {
-  const d = new Date(iso);
+  const d = validDate(iso);
+  if (!d) return iso;
   return new Intl.DateTimeFormat("es-AR", {
     timeZone: AR_TZ,
     weekday: "long",
@@ -51,7 +59,8 @@ export function formatARDayTime(iso: string): string {
 }
 
 export function formatARDateShort(iso: string): string {
-  const d = new Date(iso);
+  const d = validDate(iso);
+  if (!d) return iso;
   return new Intl.DateTimeFormat("es-AR", {
     timeZone: AR_TZ,
     day: "2-digit",
