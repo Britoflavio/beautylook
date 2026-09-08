@@ -1,9 +1,5 @@
 "use client";
-console.log('🔍 Verificando variables de entorno:');
-  console.log('URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
-  console.log('Key:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.slice(0, 20) + '...');console.log('🔍 Verificando variables de entorno:');
-  console.log('URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
-  console.log('Key:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.slice(0, 20) + '...');
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
